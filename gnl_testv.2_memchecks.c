@@ -12,10 +12,11 @@ size_t	ft_strlen(const char *s)
 	// printf("This is the %d. time this function was called.\n", j);
 	j++;
 	i = 0;
-	if (!s || s[0] == '\0')
+	if (s == NULL || s[0] == '\0')
 		return (i);
 	while (s[i] != '\0')
 		i++;
+	// printf("Length of string read is: %d\n", i);
 	return (i);
 }
 
@@ -47,7 +48,7 @@ char	*ft_strdup(char *s)
 	i = 0;
 	s_len = ft_strlen(s);
 	dest = malloc(1 * (s_len + 2));
-	// printf("mallocing at %p.\n", dest);
+	printf("mallocing at %p.\n", dest);
 	if (dest == 0)
 		return (NULL);
 	while (i < s_len)
@@ -57,7 +58,7 @@ char	*ft_strdup(char *s)
 	}
 	dest[i] = '\0';
 	dest[i + 1] = '\0';
-	// printf("freeing memory address %p.\n", s);
+	printf("freeing memory address %p.\n", s);
 	free (s);
 	return (dest);
 }
@@ -87,9 +88,10 @@ char	*ft_add_temp(char *buffer, char *temp)
 
 	if (temp == NULL)
 		return (ft_strdup(buffer));
-	len = (ft_strlen(buffer) + ft_strlen(temp));
+	len = (ft_strlen(buffer) + ft_strlen(temp)); // took out '+1' / 2. and 3. strlen call.
+	// printf("2nd. and 3rd call in add_temp.\n");
 	new = calloc((len + 2), 1);
-	// printf("Calloc in add_temp. Memory address is: %p\n", new);
+	printf("Calloc in add_temp. Memory address is: %p\n", new);
 	i = 0;
 	if (new == NULL)
 		return (NULL);
@@ -116,7 +118,8 @@ char	*ft_update_buffer(char *buffer, char *temp)
 	if (buffer == NULL)
 	{
 		new = calloc(ft_strlen(temp)+ 2, 1);
-		// printf("Calloc in update_buffer. Memory address is: %p\n", new);
+		printf("Calloc in update_buffer. Memory address is: %p\n", new);
+		// printf("update_buffer 1st. call.\n"); // first strlen call
 		while (temp[i] != '\0')
 		{
 			new[i] = temp[i];
@@ -125,13 +128,13 @@ char	*ft_update_buffer(char *buffer, char *temp)
 	}
 	else if (temp[0] == '\0')
 	{
-		// printf("freeing memory address %p.\n", temp);
+		printf("freeing memory address %p.\n", temp);
 		free(temp);
 		return (ft_strdup(buffer));
 	}
 	else
 		new = ft_add_temp(buffer, temp);
-	// printf("freeing memory address %p.\n", buffer);
+	printf("freeing memory address %p.\n", buffer);
 	free (buffer);
 	return (new);
 }
@@ -142,18 +145,15 @@ char	*ft_substr_free(char *s, unsigned int start, size_t len)
 	size_t	total_len;
 	size_t	i;
 
+	// printf("%s", s);
+	// printf("start: %d. len: %ld\n", start, len);
+	// printf("strlen: %ld\n", ft_strlen(s));
 	if (!s)
-	{
-		free(s);
 		return (NULL);
-	}
 	if (!len || start >= (ft_strlen(s)))
-	{
-		free(s);
 		return (NULL);
-	}
 	substr = calloc(len + 1, 1);
-	// printf("Calloc in substr_free. Memory address is: %p\n", substr);
+	printf("Calloc in substr_free. Memory address is: %p\n", substr);
 	if (substr == 0)
 		return (NULL);
 	total_len = start + len;
@@ -164,7 +164,9 @@ char	*ft_substr_free(char *s, unsigned int start, size_t len)
 		start++;
 		i++;
 	}
-	// printf("freeing memory address %p.\n", s);
+	// substr[i] = 0;
+	// printf("%s\n", s);
+	printf("freeing memory address %p.\n", s);
 	free (s);
 	return (substr);
 }
@@ -180,7 +182,7 @@ char	*ft_substr(char *s, unsigned int start, size_t len)
 	if (!len || start >= (ft_strlen(s)))
 		return (NULL);
 	substr = calloc(len + 1, 1);
-	// printf("Calloc in substr. Memory address is: %p\n", substr);
+	printf("Calloc in substr. Memory address is: %p\n", substr);
 	if (substr == 0)
 		return (NULL);
 	total_len = start + len;
@@ -191,6 +193,7 @@ char	*ft_substr(char *s, unsigned int start, size_t len)
 		start++;
 		i++;
 	}
+	// substr[i] = '\0';
 	return (substr);
 }
 
@@ -199,91 +202,75 @@ char	*get_next_line(int fd)
 	static char	*buffer = NULL;
 	char		*temp;
 	char		*helper;
-	static int	count_bytes;
-	int			len;
+	int			count_bytes;
 
 	if (fd < 0 || BUFFER_SIZE < 1)
 		return (0);
 	temp = calloc(BUFFER_SIZE + 1, 1);
-	// printf("Calloc in gnl, callocing temp. Memory address is: %p\n", temp);
+	printf("Calloc in gnl, callocing temp. Memory address is: %p\n", temp);
 	count_bytes = read(fd, temp, BUFFER_SIZE);
-	printf("count_bytes: %d \n", count_bytes);
-	if (count_bytes == 0 || (buffer == NULL && BUFFER_SIZE > count_bytes))
-	{
-		free (temp);
-		return (NULL);
-	}
 	if (buffer == NULL && count_bytes == 0)
 	{
-		// printf("free temp at: %p\n", temp);
+		printf("free temp at: %p\n", temp);
 		free (temp);
-		temp = NULL;
 		return (NULL);
 	}
 	while (count_bytes > 0)
 	{
-		buffer = ft_update_buffer(buffer, temp);
+		buffer = ft_update_buffer(buffer, temp); // buffer doesn't get freed in the last loop. Buffer holds the entire line now.
 		if (ft_strchr(buffer, '\n') != NULL)
 			break;
 		count_bytes = read(fd, temp, BUFFER_SIZE);
-		if (count_bytes < BUFFER_SIZE)
-			temp[count_bytes] = '\n';
 	}
 	if (count_bytes == 0)
 	{
-		// printf("freeing temp at %p.\n", temp);
+		buffer[ft_strlen(buffer)] = '\n';
+		printf("freeing temp at %p.\n", temp);
 		free (temp);
 		return (buffer);
 	}
 	if (count_bytes != 0)
 	{
-		// printf("freeing memory address %p.\n", temp);
+		printf("freeing memory address %p.\n", temp);
 		free (temp);
 		temp = ft_substr(buffer, 0, (ft_strchr(buffer, '\n') - (buffer - 1)));
 		helper = ft_strdup(buffer);
-		// printf("temp: %s, helper: %s.\n", temp, helper);
-		if (temp == NULL || temp[0] == '\0')
-			len = ft_strlen(helper);
-		else if (helper == NULL || helper [0] == '\0')
-			len = ft_strlen(temp);
-		else
-			len = ft_strlen(helper) - ft_strlen(temp);
-		buffer = ft_substr_free(helper, (ft_strchr(helper, '\n') - (helper - 1)), len);
+		buffer = ft_substr_free(helper, (ft_strchr(helper, '\n') - (helper - 1)), ft_strlen(helper) - ft_strlen(temp));
+		printf("freeing memory address %p.\n", helper);
+		free (helper);
 	}
-	// printf("Buffer: %s", buffer);
-	// printf("Temp: %s", temp);
 	return (temp);
 }
 
 
-// int	main(void)
-// {
-// 	int		fd;
-// 	int		i;
-// 	char	*string;
-// 	char	*file_name;
+int	main(void)
+{
+	int		fd;
+	int		i;
+	char	*string;
+	char	*file_name;
 
-// 	file_name = "readfrom.c";
-// 	i = 0;
-// 	printf("BUFFER_SIZE: %d\n", BUFFER_SIZE);
-// 	fd = open(file_name, O_RDWR);
-// 	if (fd == -1)
-// 	{
-// 		printf("open() failed.");
-// 		return (0);
-// 	}
-// 	printf("File descriptor chosen: %d\n", fd);
-// 	while (i < 2)
-// 	{
-// 		string = get_next_line(fd);
-// 		printf("Return string: %s", string);	
-// 		i++;
-// 		printf("freeing memory address %p.\n", string);
-// 		free(string);
-// 	}
-// 	if (close(fd) == -1)
-// 	{
-// 		printf("close() failed.");
-// 		return (0);
-// 	}
-// }
+	file_name = "readfrom.c";
+	i = 0;
+	printf("BUFFER_SIZE: %d\n", BUFFER_SIZE);
+	fd = open(file_name, O_RDWR);
+	if (fd == -1)
+	{
+		printf("open() failed.");
+		return (0);
+	}
+	printf("File descriptor chosen: %d\n", fd);
+	while (i < 2)
+	{
+		string = get_next_line(fd);
+		printf("Return string: %s", string);	
+		i++;
+		printf("freeing memory address %p.\n", string);
+		free(string);
+	}
+	if (close(fd) == -1)
+	{
+		printf("close() failed.");
+		return (0);
+	}
+}

@@ -228,17 +228,29 @@ char	*get_next_line(int fd)
 			return (remainder);
 		}
 		remainder = ft_update_buffer(remainder, temporary); // effectively joining both strings and freeing them.
-		// printf("Remainder after joining: %s", remainder);
 		if (ft_strchr(remainder, '\n') != NULL)
 			break;
 	}
 	if (count_bytes == 0)
 		remainder[ft_strlen(remainder)] = '\n';
 	// printf("remainder after while loop: %s", remainder);
-	temporary = ft_substr(remainder, 0, (ft_strchr(remainder, '\n') - (remainder - 1))); // section up to \n character
+	// if (count_bytes == 0 && ft_strchr(remainder, '\n') == NULL)
+	// 	return (remainder);
+	// if (remainder[0] == '\n')
+	// {
+	// 	helper = remainder;
+	// 	remainder = ft_strdup(helper + 1);
+	// 	free (helper);
+	// 	printf("%s", remainder);
+	// 	temporary = ft_substr(remainder, 0, 1);
+	// 	return (temporary);
+	// }
+	temporary = ft_substr(remainder, 0, (ft_strchr(remainder, '\n') - (remainder - 1)));
+	// printf("temporary: %s", temporary);
 	helper = remainder;
-	remainder = ft_substr(remainder, (ft_strchr(remainder, '\n') - (remainder - 1)), ft_strlen(remainder) - ft_strlen(temporary)); // everything after the first \n
+	remainder = ft_substr(remainder, (ft_strchr(remainder, '\n') - (remainder - 1)), ft_strlen(remainder) - ft_strlen(temporary));
 	free (helper);
+	// // printf("Remainder: %s", remainder);
 	if (count_bytes == 0 && remainder == NULL)
 	{
 		temporary[ft_strlen(temporary) - 1] = '\0';
